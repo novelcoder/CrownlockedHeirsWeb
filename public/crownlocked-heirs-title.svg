@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 350" role="img" aria-labelledby="title desc">
+  <title id="title">Crownlocked Heirs</title>
+  <desc id="desc">An icy silver fantasy title with a small crown and gold royal ornament.</desc>
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.18" stop-color="#dffaff"/>
+      <stop offset="0.43" stop-color="#7faabd"/>
+      <stop offset="0.60" stop-color="#eefeff"/>
+      <stop offset="0.78" stop-color="#5f8398"/>
+      <stop offset="1" stop-color="#c8edf6"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7a4610"/>
+      <stop offset="0.5" stop-color="#ffc65b"/>
+      <stop offset="1" stop-color="#7a4610"/>
+    </linearGradient>
+    <filter id="heroic" x="-20%" y="-30%" width="140%" height="170%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blur"/>
+      <feFlood flood-color="#3ad9ff" flood-opacity=".35" result="glow"/>
+      <feComposite in="glow" in2="blur" operator="in" result="softGlow"/>
+      <feOffset in="SourceAlpha" dy="5" result="offset"/>
+      <feFlood flood-color="#020812" flood-opacity=".95" result="shadowColor"/>
+      <feComposite in="shadowColor" in2="offset" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="softGlow"/><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <g fill="none" stroke="url(#gold)" stroke-width="2" opacity=".9">
+    <path d="M333 49H386M434 49H487"/>
+    <path d="M397 53l13-27 13 27-13 11z" fill="url(#gold)"/>
+    <path d="M397 45l-12-19 19 8 6-24 7 24 18-8-12 19z"/>
+  </g>
+
+  <g filter="url(#heroic)" text-anchor="middle" font-family="Cinzel, Trajan Pro, Georgia, serif" font-weight="500">
+    <text x="410" y="172" font-size="118" letter-spacing="4" textLength="760" lengthAdjust="spacingAndGlyphs" fill="#071624" stroke="#071624" stroke-width="7">CROWNLOCKED</text>
+    <text x="410" y="172" font-size="118" letter-spacing="4" textLength="760" lengthAdjust="spacingAndGlyphs" fill="url(#silver)" stroke="#c8f5ff" stroke-width="1.5">CROWNLOCKED</text>
+    <text x="410" y="310" font-size="158" letter-spacing="14" textLength="590" lengthAdjust="spacingAndGlyphs" fill="#071624" stroke="#071624" stroke-width="8">HEIRS</text>
+    <text x="410" y="310" font-size="158" letter-spacing="14" textLength="590" lengthAdjust="spacingAndGlyphs" fill="url(#silver)" stroke="#c8f5ff" stroke-width="1.7">HEIRS</text>
+  </g>
+
+  <path d="M84 331H362l16-7 16 7h32l16-7 16 7h278" fill="none" stroke="url(#gold)" stroke-width="1.5" opacity=".8"/>
+</svg>
