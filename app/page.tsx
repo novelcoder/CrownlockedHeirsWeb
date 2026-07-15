@@ -202,22 +202,7 @@ export default async function Home() {
         </div>
 
         <header className="site-header shell">
-          <a className="brand" href="#top" aria-label="Crownlocked Heirs home">
-            Crownlocked Heirs
-          </a>
-          <nav className="desktop-nav" aria-label="Main navigation">
-            <a href="#heirs">The Heirs</a>
-            <a href="#bjargfold">Bjargfold</a>
-            <a href="#about">About</a>
-          </nav>
-          <details className="mobile-menu">
-            <summary aria-label="Open navigation"><span /><span /><span /></summary>
-            <nav aria-label="Mobile navigation">
-              <a href="#heirs">The Heirs</a>
-              <a href="#bjargfold">Bjargfold</a>
-              <a href="#about">About</a>
-            </nav>
-          </details>
+          <p className="presenter">JAMIE McFARLANE PRESENTS</p>
         </header>
 
         <div className="hero-grid shell">
@@ -231,15 +216,11 @@ export default async function Home() {
                 height="736"
               />
             </div>
-            <h1>
-              Earth was supposed to be the safe world.
-            </h1>
             <p className="hero-lede">
-              Four hidden heirs. Four fallen crowns. One world waiting to be
-              reclaimed.
+              Two hidden heirs. Two fallen kingdoms. One impossible
+              fellowship—and a world waiting to be reclaimed.
             </p>
             <div className="hero-actions">
-              <a className="button button-primary" href="#heirs">Meet the heirs</a>
               <a className="button button-secondary" href="#featured">Begin with Drakon Prince</a>
             </div>
           </div>
