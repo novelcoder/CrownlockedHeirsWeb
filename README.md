@@ -4,6 +4,10 @@ Responsive series website for Jamie McFarlane's *Crownlocked Heirs* LitRPG fanta
 
 The homepage is connected to the shared Appwrite books table and keeps a local four-book fallback so the experience remains complete while future titles are still being prepared.
 
+Books are read server-side via `lib/appwrite.ts`, authenticated with a privileged
+`CMS_API_KEY` (using the `node-appwrite` server SDK's TablesDB service) — not from
+the browser. The key never reaches the client.
+
 ## Local preview
 
 ```bash
@@ -11,7 +15,8 @@ npm install
 npm run dev
 ```
 
-Copy `.env.example` to `.env.local` when Appwrite values differ from the shared defaults.
+Copy `.env.example` to `.env.local` and fill in `CMS_API_KEY` with an Appwrite API
+key scoped to `databases.read` + `documents.read` (read-only, no write scopes).
 
 ## Appwrite Sites deployment
 
@@ -23,6 +28,7 @@ Connect this repository from **Sites** in the Appwrite Console and use:
 - Build command: `npm run build`
 - Output directory: `.next`
 
-Add the four variables from `.env.example` in the site's environment settings.
-The books table must allow public read access for published book metadata; the
-homepage falls back to its bundled four-book list if Appwrite is unavailable.
+Add all five variables from `.env.example` (including `CMS_API_KEY`) in the site's
+environment settings — they're needed at build time too, since the homepage
+prerenders statically. If Appwrite is unreachable or misconfigured, the homepage
+falls back to its bundled four-book list rather than failing.
