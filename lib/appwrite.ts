@@ -1,6 +1,8 @@
 import "server-only";
 import { Client, TablesDB, Query } from "node-appwrite";
 
+const BOOKS_TABLE_ID = "books";
+
 function requiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -27,7 +29,7 @@ export type AppwriteRow = Record<string, unknown>;
 export async function listBookRows(): Promise<AppwriteRow[]> {
   const res = await getTablesDB().listRows({
     databaseId: requiredEnv("CMS_DATABASE_ID"),
-    tableId: requiredEnv("CMS_BOOKS_TABLE_ID"),
+    tableId: BOOKS_TABLE_ID,
     queries: [Query.limit(100)],
   });
   return res.rows;

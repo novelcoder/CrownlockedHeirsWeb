@@ -28,7 +28,7 @@ Connect this repository from **Sites** in the Appwrite Console and use:
 - Build command: `npm run build`
 - Output directory: `.next`
 
-Add all five variables from `.env.example` (including `CMS_API_KEY`) in the site's
+Add all four variables from `.env.example` (including `CMS_API_KEY`) in the site's
 environment settings — they're needed at build time too, since the homepage
 prerenders statically. If Appwrite is unreachable or misconfigured, the homepage
 falls back to its bundled four-book list rather than failing.
