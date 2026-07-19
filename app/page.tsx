@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { listBookRows, type AppwriteRow } from "@/lib/appwrite";
 
 export const revalidate = 300;
 
@@ -13,8 +14,6 @@ type Book = {
   coverAlt?: string;
   purchaseUrl?: string;
 };
-
-type AppwriteRow = Record<string, unknown>;
 
 const fallbackBooks: Book[] = [
   {
@@ -52,20 +51,6 @@ const fallbackBooks: Book[] = [
     promise: "The last inheritance remains hidden.",
   },
 ];
-
-const appwrite = {
-  endpoint:
-    process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ??
-    "https://sfo.cloud.appwrite.io/v1",
-  projectId:
-    process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ??
-    "project-sfo-6a0b4638002a71c2b8ec",
-  databaseId:
-    process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID ??
-    "database-6a0b628900008b8506e3",
-  booksTableId:
-    process.env.NEXT_PUBLIC_APPWRITE_BOOKS_TABLE_ID ?? "table-books",
-};
 
 function firstString(row: AppwriteRow, keys: string[]) {
   for (const key of keys) {
@@ -143,19 +128,13 @@ function mergeAppwriteRows(rows: AppwriteRow[]) {
 
 async function getBooks() {
   try {
-    const url = `${appwrite.endpoint}/tablesdb/${appwrite.databaseId}/tables/${appwrite.booksTableId}/rows?total=false`;
-    const response = await fetch(url, {
-      headers: { "X-Appwrite-Project": appwrite.projectId },
-      next: { revalidate: 300 },
-    });
-    if (!response.ok) return fallbackBooks;
-
-    const payload = (await response.json()) as {
-      rows?: AppwriteRow[];
-      documents?: AppwriteRow[];
-    };
-    return mergeAppwriteRows(payload.rows ?? payload.documents ?? []);
-  } catch {
+    const rows = await listBookRows();
+    return mergeAppwriteRows(rows);
+  } catch (err) {
+    console.warn(
+      "Could not load books from Appwrite:",
+      err instanceof Error ? err.message : err,
+    );
     return fallbackBooks;
   }
 }
