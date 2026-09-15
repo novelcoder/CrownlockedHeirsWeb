@@ -1,4 +1,9 @@
 import type { CSSProperties } from "react";
+import {
+  AnalyticsLink,
+  AnalyticsView,
+} from "@/components/analytics/AnalyticsEvents";
+import { SiteFooter } from "@/components/SiteFooter";
 import { listBookRows, type AppwriteRow } from "@/lib/appwrite";
 
 export const revalidate = 300;
@@ -68,7 +73,18 @@ function firstNumber(row: AppwriteRow, keys: string[]) {
 }
 
 function titleKey(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function destinationDomain(value: string) {
+  try {
+    return new URL(value).hostname;
+  } catch {
+    return "unknown";
+  }
 }
 
 function rowBelongsToSeries(row: AppwriteRow, title: string) {
@@ -96,7 +112,8 @@ function mergeAppwriteRows(rows: AppwriteRow[]) {
     const order = firstNumber(row, ["series_order", "book_number", "order"]);
     const index = books.findIndex(
       (book) =>
-        (order && book.order === order) || titleKey(book.title) === titleKey(title),
+        (order && book.order === order) ||
+        titleKey(book.title) === titleKey(title),
     );
     if (index < 0) continue;
 
@@ -105,7 +122,8 @@ function mergeAppwriteRows(rows: AppwriteRow[]) {
       ...existing,
       id: firstString(row, ["$id", "id", "slug"]) ?? existing.id,
       title,
-      status: firstString(row, ["status", "publication_status"]) ?? existing.status,
+      status:
+        firstString(row, ["status", "publication_status"]) ?? existing.status,
       protagonist:
         firstString(row, ["protagonist", "character_line", "subtitle"]) ??
         existing.protagonist,
@@ -155,6 +173,12 @@ const embers = [
 export default async function Home() {
   const books = await getBooks();
   const featured = books[0];
+  const analyticsItems = books.map((book) => ({
+    item_id: book.id,
+    item_name: book.title,
+    item_list_name: "Crownlocked Path",
+    index: book.order,
+  }));
 
   return (
     <main>
@@ -200,11 +224,32 @@ export default async function Home() {
               fellowship—and a world waiting to be reclaimed.
             </p>
             <div className="hero-actions">
-              <a className="button button-secondary" href="#featured">Begin with Drakon Prince</a>
+              <AnalyticsLink
+                className="button button-secondary"
+                eventName="series_cta_click"
+                eventParameters={{
+                  content_format: "book",
+                  item_id: featured.id,
+                  item_name: featured.title,
+                  link_text: "Begin with Drakon Prince",
+                  placement: "hero",
+                }}
+                href="#featured"
+              >
+                Begin with Drakon Prince
+              </AnalyticsLink>
             </div>
           </div>
 
           <div className="cover-stage" id="featured">
+            <AnalyticsView
+              eventName="view_item"
+              parameters={{
+                content_format: "book",
+                items: [analyticsItems[0]],
+                placement: "featured_cover",
+              }}
+            />
             <span className="cover-aura" aria-hidden="true" />
             <div className="book-cover">
               <img
@@ -217,33 +262,61 @@ export default async function Home() {
       </section>
 
       <section className="path-section" id="heirs">
+        <AnalyticsView
+          eventName="view_item_list"
+          parameters={{
+            content_format: "book",
+            item_list_name: "Crownlocked Path",
+            items: analyticsItems,
+            placement: "series_path",
+          }}
+        />
         <div className="section-heading shell">
           <p className="eyebrow">Choose an inheritance</p>
           <h2>The Crownlocked Path</h2>
-          <span className="ornament" aria-hidden="true">◆</span>
+          <span className="ornament" aria-hidden="true">
+            ◆
+          </span>
         </div>
 
         <div className="book-path shell">
           {books.map((book) => {
             const content = (
               <>
-                <span className="book-number">
-                  {book.order}
-                </span>
+                <span className="book-number">{book.order}</span>
                 <span className="book-details">
                   <strong>{book.title}</strong>
                   <span className="book-status">{book.status}</span>
-                  <small className="sr-only">{book.protagonist}. {book.promise}</small>
+                  <small className="sr-only">
+                    {book.protagonist}. {book.promise}
+                  </small>
                 </span>
               </>
             );
 
             return book.purchaseUrl ? (
-              <a className={`path-card path-card-${book.order}`} href={book.purchaseUrl} key={book.id}>
+              <AnalyticsLink
+                className={`path-card path-card-${book.order}`}
+                eventName="retailer_link_click"
+                eventParameters={{
+                  content_format: "book",
+                  destination_domain: destinationDomain(book.purchaseUrl),
+                  item_id: book.id,
+                  item_name: book.title,
+                  link_text: book.title,
+                  list_name: "Crownlocked Path",
+                  placement: "series_path",
+                }}
+                href={book.purchaseUrl}
+                key={book.id}
+              >
                 {content}
-              </a>
+              </AnalyticsLink>
             ) : (
-              <article className={`path-card path-card-${book.order}`} key={book.id}>
+              <article
+                className={`path-card path-card-${book.order}`}
+                key={book.id}
+              >
                 {content}
               </article>
             );
@@ -279,12 +352,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <footer id="about">
-        <div className="shell footer-inner">
-          <p><strong>Crownlocked Heirs</strong><br />An interconnected LitRPG fantasy series by Jamie McFarlane.</p>
-          <a href="#top">Return to the crown</a>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
