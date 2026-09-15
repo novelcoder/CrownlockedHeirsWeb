@@ -40,6 +40,12 @@ manual route-change page views. The second prevents its generic `click` event
 from duplicating the site’s `retailer_link_click` event. Other Enhanced
 Measurement options can remain independently configured.
 
+## Search discovery
+
+Next.js publishes the public search-engine discovery files at `/sitemap.xml`
+and `/robots.txt`. Both use `https://crownlockedheirs.com` as the canonical
+origin. Keep `app/sitemap.ts` synchronized with any future public routes.
+
 ## Appwrite Sites deployment
 
 Connect this repository from **Sites** in the Appwrite Console and use:
