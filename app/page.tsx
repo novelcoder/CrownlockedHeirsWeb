@@ -5,95 +5,15 @@ import {
   AnalyticsView,
 } from "@/components/analytics/AnalyticsEvents";
 import { SiteFooter } from "@/components/SiteFooter";
-import {
-  getSeriesBySlug,
-  listBookRowsBySeriesId,
-  type AppwriteRow,
-} from "@/lib/appwrite";
+import { getSeriesBooks } from "@/lib/books";
 
 export const revalidate = 300;
-
-const SERIES_SLUG = "crownlocked-heirs";
 
 // The 3D paperback render used for the hero. This is a hero-only asset, not
 // the flat book_covers.cover_url (which now points to the flat ebook cover),
 // so it's referenced directly from the CrownlockedHeirs storage bucket.
 const HERO_COVER_URL =
   "https://sfo.cloud.appwrite.io/v1/storage/buckets/6aabf091000da4dc7980/files/6aabf50e000b893a97bf/view?project=6a0b4638002a71c2b8ec";
-
-type Book = {
-  id: string;
-  order: number;
-  title: string;
-  status: string;
-  statusLabel: string;
-  tagline?: string;
-  cardDescription?: string;
-  coverUrl?: string;
-  coverAlt?: string;
-  storeUrl?: string;
-  storeLabel?: string;
-};
-
-function asString(value: unknown) {
-  return typeof value === "string" && value.trim() ? value.trim() : undefined;
-}
-
-function asNumber(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && /^-?\d+$/.test(value)) return Number(value);
-}
-
-function formatStatusLabel(status: string) {
-  return status
-    .split(/[_\s]+/)
-    .filter(Boolean)
-    .map((word) => word[0].toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-function destinationDomain(value: string) {
-  try {
-    return new URL(value).hostname;
-  } catch {
-    return "unknown";
-  }
-}
-
-function mapBookRow(row: AppwriteRow, index: number): Book {
-  const status = asString(row.status) ?? "";
-
-  return {
-    id: asString(row.$id) ?? asString(row.slug) ?? `book-${index}`,
-    order: asNumber(row.series_number) ?? index + 1,
-    title: asString(row.title) ?? "Untitled",
-    status,
-    statusLabel: status ? formatStatusLabel(status) : "",
-    tagline: asString(row.tagline),
-    cardDescription: asString(row.card_description),
-    coverUrl: asString(row.cover_url),
-    coverAlt: asString(row.cover_alt),
-    storeUrl: asString(row.store_url),
-    storeLabel: asString(row.store_label),
-  };
-}
-
-async function getBooks(): Promise<Book[]> {
-  try {
-    const series = await getSeriesBySlug(SERIES_SLUG);
-    const seriesId = series ? asString(series.$id) : undefined;
-    if (!seriesId) return [];
-
-    const rows = await listBookRowsBySeriesId(seriesId);
-    return rows.map(mapBookRow).sort((a, b) => a.order - b.order);
-  } catch (err) {
-    console.warn(
-      "Could not load books from Appwrite:",
-      err instanceof Error ? err.message : err,
-    );
-    return [];
-  }
-}
 
 const embers = [
   [8, 5, 10, 0.8],
@@ -109,7 +29,7 @@ const embers = [
 ] as const;
 
 export default async function Home() {
-  const books = await getBooks();
+  const books = await getSeriesBooks();
   const featured = books[0];
   const ctaLabel = featured ? `Begin with ${featured.title}` : undefined;
   const analyticsItems = books.map((book) => ({
@@ -174,7 +94,7 @@ export default async function Home() {
                     link_text: ctaLabel,
                     placement: "hero",
                   }}
-                  href="#featured"
+                  href={`/books/${featured.slug}`}
                 >
                   {ctaLabel}
                 </AnalyticsLink>
@@ -258,31 +178,22 @@ export default async function Home() {
                 </>
               );
 
-              return book.storeUrl ? (
+              return (
                 <AnalyticsLink
                   className={`path-card path-card-${book.order}`}
-                  eventName="retailer_link_click"
+                  eventName="select_item"
                   eventParameters={{
                     content_format: "book",
-                    destination_domain: destinationDomain(book.storeUrl),
                     item_id: book.id,
                     item_name: book.title,
-                    link_text: book.storeLabel ?? book.title,
                     list_name: "Crownlocked Path",
                     placement: "series_path",
                   }}
-                  href={book.storeUrl}
+                  href={`/books/${book.slug}`}
                   key={book.id}
                 >
                   {content}
                 </AnalyticsLink>
-              ) : (
-                <article
-                  className={`path-card path-card-${book.order}`}
-                  key={book.id}
-                >
-                  {content}
-                </article>
               );
             })}
             <article
