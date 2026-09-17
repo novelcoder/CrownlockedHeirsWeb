@@ -1,6 +1,7 @@
 import "server-only";
 import { Client, TablesDB, Query } from "node-appwrite";
 
+const SERIES_TABLE_ID = "series";
 const BOOKS_TABLE_ID = "books";
 
 function requiredEnv(name: string): string {
@@ -26,11 +27,28 @@ function getTablesDB(): TablesDB {
 
 export type AppwriteRow = Record<string, unknown>;
 
-export async function listBookRows(): Promise<AppwriteRow[]> {
+export async function getSeriesBySlug(
+  slug: string,
+): Promise<AppwriteRow | null> {
+  const res = await getTablesDB().listRows({
+    databaseId: requiredEnv("CMS_DATABASE_ID"),
+    tableId: SERIES_TABLE_ID,
+    queries: [Query.equal("slug", slug), Query.limit(1)],
+  });
+  return res.rows[0] ?? null;
+}
+
+export async function listBookRowsBySeriesId(
+  seriesId: string,
+): Promise<AppwriteRow[]> {
   const res = await getTablesDB().listRows({
     databaseId: requiredEnv("CMS_DATABASE_ID"),
     tableId: BOOKS_TABLE_ID,
-    queries: [Query.limit(100)],
+    queries: [
+      Query.equal("series_id", seriesId),
+      Query.orderAsc("series_number"),
+      Query.limit(100),
+    ],
   });
   return res.rows;
 }

@@ -43,8 +43,8 @@ export default function PrivacyPage() {
           <p>
             If you select “Allow analytics,” the site loads Google Analytics 4
             and records page views, views of the featured book and series list,
-            the main “Begin with Drakon Prince” action, and outbound retailer
-            link clicks. Retailer clicks are interactions, not purchases.
+            the “Begin with” action for the current featured book, and outbound
+            retailer link clicks. Retailer clicks are interactions, not purchases.
           </p>
           <p>
             The event data can include the page path and title, referring page,

@@ -2,11 +2,16 @@
 
 Responsive series website for Jamie McFarlane's _Crownlocked Heirs_ LitRPG fantasy novels.
 
-The homepage is connected to the shared Appwrite books table and keeps a local four-book fallback so the experience remains complete while future titles are still being prepared.
+The homepage's book content is fully database-driven: it resolves the Crownlocked
+Heirs series from the shared Appwrite `series` table by its `crownlocked-heirs`
+slug, then reads that series' rows from the `books` table, ordered by
+`series_number`. There is no local book fallback — if Appwrite is unreachable or
+the series has no books, the homepage renders a neutral "unavailable" state
+instead of stale or invented book data.
 
-Books are read server-side via `lib/appwrite.ts`, authenticated with a privileged
-`CMS_API_KEY` (using the `node-appwrite` server SDK's TablesDB service) — not from
-the browser. The key never reaches the client.
+Books and the series are read server-side via `lib/appwrite.ts`, authenticated
+with a privileged `CMS_API_KEY` (using the `node-appwrite` server SDK's TablesDB
+service) — not from the browser. The key never reaches the client.
 
 ## Local preview
 
@@ -60,4 +65,5 @@ Add the four CMS variables from `.env.example` (including `CMS_API_KEY`) in the
 site's environment settings. Add `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` only when GA4
 is configured. These values are needed at build time too, since the homepage
 prerenders statically. If Appwrite is unreachable or misconfigured, the homepage
-falls back to its bundled four-book list rather than failing.
+renders a neutral "book details unavailable" state rather than failing or
+showing stale data.

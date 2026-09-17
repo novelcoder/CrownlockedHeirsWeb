@@ -18,14 +18,20 @@ test("builds the Crownlocked Heirs homepage with its production assets", async (
 
   assert.match(layout, /Crownlocked Heirs \| Jamie McFarlane/);
   assert.match(page, /crownlocked-heirs-wordmark-transparent\.png/);
-  assert.match(page, /Drakon Prince/);
-  assert.match(page, /The Impossible Fellowship/);
+  assert.match(page, /crownlocked-heirs/);
+  assert.match(page, /getSeriesBySlug/);
+  assert.match(page, /listBookRowsBySeriesId/);
+  assert.match(page, /storage\/buckets\/.*\/files\/.*\/view/);
+  assert.doesNotMatch(page, /Drakon Prince/);
+  assert.doesNotMatch(page, /The Impossible Fellowship/);
+  assert.doesNotMatch(page, /The Final Heir/);
+  assert.doesNotMatch(page, /fallbackBooks/);
   assert.match(privacy, /Privacy &amp; Cookies/);
+  assert.doesNotMatch(privacy, /Drakon Prince/);
   assert.match(footer, /CookieSettingsButton/);
   assert.match(appwriteLib, /TablesDB/);
   assert.match(appwriteLib, /CMS_API_KEY/);
   assert.match(packageJson, /"build": "next build"/);
 
-  await access(new URL("../public/drakon-prince-book.png", import.meta.url));
   await access(new URL("../public/hero-bjargfold.jpg", import.meta.url));
 });
