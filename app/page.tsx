@@ -1,82 +1,55 @@
 import type { CSSProperties } from "react";
+import Link from "next/link";
 import {
   AnalyticsLink,
   AnalyticsView,
 } from "@/components/analytics/AnalyticsEvents";
 import { SiteFooter } from "@/components/SiteFooter";
-import { listBookRows, type AppwriteRow } from "@/lib/appwrite";
+import {
+  getSeriesBySlug,
+  listBookRowsBySeriesId,
+  type AppwriteRow,
+} from "@/lib/appwrite";
 
 export const revalidate = 300;
+
+const SERIES_SLUG = "crownlocked-heirs";
+
+// The 3D paperback render used for the hero. This is a hero-only asset, not
+// the flat book_covers.cover_url (which now points to the flat ebook cover),
+// so it's referenced directly from the CrownlockedHeirs storage bucket.
+const HERO_COVER_URL =
+  "https://sfo.cloud.appwrite.io/v1/storage/buckets/6aabf091000da4dc7980/files/6aabf50e000b893a97bf/view?project=6a0b4638002a71c2b8ec";
 
 type Book = {
   id: string;
   order: number;
   title: string;
   status: string;
-  protagonist: string;
-  promise: string;
+  statusLabel: string;
+  tagline?: string;
+  cardDescription?: string;
   coverUrl?: string;
   coverAlt?: string;
-  purchaseUrl?: string;
+  storeUrl?: string;
+  storeLabel?: string;
 };
 
-const fallbackBooks: Book[] = [
-  {
-    id: "drakon-prince",
-    order: 1,
-    title: "Drakon Prince",
-    status: "Awakened",
-    protagonist: "Theo Kieten · Dragon",
-    promise: "Accept his birthright. Become prey.",
-    coverUrl: "/drakon-prince.jpg",
-    coverAlt: "Drakon Prince by Jamie McFarlane",
-  },
-  {
-    id: "wizard-prince",
-    order: 2,
-    title: "Wizard Prince",
-    status: "Awakened",
-    protagonist: "A gamer · A hidden prince",
-    promise: "The game was never only a game.",
-  },
-  {
-    id: "the-impossible-fellowship",
-    order: 3,
-    title: "The Impossible Fellowship",
-    status: "Gathering",
-    protagonist: "The next crown stirs",
-    promise: "Some quests were never meant to be survived alone.",
-  },
-  {
-    id: "the-final-heir",
-    order: 4,
-    title: "The Final Heir",
-    status: "Identity Locked",
-    protagonist: "A Jonas Breivik novel",
-    promise: "The last inheritance remains hidden.",
-  },
-];
-
-function firstString(row: AppwriteRow, keys: string[]) {
-  for (const key of keys) {
-    const value = row[key];
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
+function asString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-function firstNumber(row: AppwriteRow, keys: string[]) {
-  for (const key of keys) {
-    const value = row[key];
-    if (typeof value === "number" && Number.isFinite(value)) return value;
-    if (typeof value === "string" && /^\d+$/.test(value)) return Number(value);
-  }
+function asNumber(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && /^-?\d+$/.test(value)) return Number(value);
 }
 
-function titleKey(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+function formatStatusLabel(status: string) {
+  return status
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 function destinationDomain(value: string) {
@@ -87,73 +60,38 @@ function destinationDomain(value: string) {
   }
 }
 
-function rowBelongsToSeries(row: AppwriteRow, title: string) {
-  const series = firstString(row, [
-    "series_slug",
-    "seriesSlug",
-    "series_name",
-    "seriesName",
-  ]);
+function mapBookRow(row: AppwriteRow, index: number): Book {
+  const status = asString(row.status) ?? "";
 
-  return (
-    !series ||
-    titleKey(series) === "crownlocked-heirs" ||
-    fallbackBooks.some((book) => titleKey(book.title) === titleKey(title))
-  );
+  return {
+    id: asString(row.$id) ?? asString(row.slug) ?? `book-${index}`,
+    order: asNumber(row.series_number) ?? index + 1,
+    title: asString(row.title) ?? "Untitled",
+    status,
+    statusLabel: status ? formatStatusLabel(status) : "",
+    tagline: asString(row.tagline),
+    cardDescription: asString(row.card_description),
+    coverUrl: asString(row.cover_url),
+    coverAlt: asString(row.cover_alt),
+    storeUrl: asString(row.store_url),
+    storeLabel: asString(row.store_label),
+  };
 }
 
-function mergeAppwriteRows(rows: AppwriteRow[]) {
-  const books = fallbackBooks.map((book) => ({ ...book }));
-
-  for (const row of rows) {
-    const title = firstString(row, ["title", "name"]);
-    if (!title || !rowBelongsToSeries(row, title)) continue;
-
-    const order = firstNumber(row, ["series_order", "book_number", "order"]);
-    const index = books.findIndex(
-      (book) =>
-        (order && book.order === order) ||
-        titleKey(book.title) === titleKey(title),
-    );
-    if (index < 0) continue;
-
-    const existing = books[index];
-    books[index] = {
-      ...existing,
-      id: firstString(row, ["$id", "id", "slug"]) ?? existing.id,
-      title,
-      status:
-        firstString(row, ["status", "publication_status"]) ?? existing.status,
-      protagonist:
-        firstString(row, ["protagonist", "character_line", "subtitle"]) ??
-        existing.protagonist,
-      promise:
-        firstString(row, ["tagline", "short_description", "teaser"]) ??
-        existing.promise,
-      coverUrl:
-        firstString(row, ["cover_url", "coverUrl", "cover_image_url"]) ??
-        existing.coverUrl,
-      coverAlt:
-        firstString(row, ["cover_alt", "coverAlt"]) ?? existing.coverAlt,
-      purchaseUrl:
-        firstString(row, ["purchase_url", "amazon_url", "retailer_url"]) ??
-        existing.purchaseUrl,
-    };
-  }
-
-  return books.sort((a, b) => a.order - b.order);
-}
-
-async function getBooks() {
+async function getBooks(): Promise<Book[]> {
   try {
-    const rows = await listBookRows();
-    return mergeAppwriteRows(rows);
+    const series = await getSeriesBySlug(SERIES_SLUG);
+    const seriesId = series ? asString(series.$id) : undefined;
+    if (!seriesId) return [];
+
+    const rows = await listBookRowsBySeriesId(seriesId);
+    return rows.map(mapBookRow).sort((a, b) => a.order - b.order);
   } catch (err) {
     console.warn(
       "Could not load books from Appwrite:",
       err instanceof Error ? err.message : err,
     );
-    return fallbackBooks;
+    return [];
   }
 }
 
@@ -173,6 +111,7 @@ const embers = [
 export default async function Home() {
   const books = await getBooks();
   const featured = books[0];
+  const ctaLabel = featured ? `Begin with ${featured.title}` : undefined;
   const analyticsItems = books.map((book) => ({
     item_id: book.id,
     item_name: book.title,
@@ -223,54 +162,70 @@ export default async function Home() {
               Two hidden heirs. Two fallen kingdoms. One impossible
               fellowship—and a world waiting to be reclaimed.
             </p>
-            <div className="hero-actions">
-              <AnalyticsLink
-                className="button button-secondary"
-                eventName="series_cta_click"
-                eventParameters={{
-                  content_format: "book",
-                  item_id: featured.id,
-                  item_name: featured.title,
-                  link_text: "Begin with Drakon Prince",
-                  placement: "hero",
-                }}
-                href="#featured"
-              >
-                Begin with Drakon Prince
-              </AnalyticsLink>
-            </div>
+            {featured && ctaLabel && (
+              <div className="hero-actions">
+                <AnalyticsLink
+                  className="button button-secondary"
+                  eventName="series_cta_click"
+                  eventParameters={{
+                    content_format: "book",
+                    item_id: featured.id,
+                    item_name: featured.title,
+                    link_text: ctaLabel,
+                    placement: "hero",
+                  }}
+                  href="#featured"
+                >
+                  {ctaLabel}
+                </AnalyticsLink>
+              </div>
+            )}
           </div>
 
           <div className="cover-stage" id="featured">
-            <AnalyticsView
-              eventName="view_item"
-              parameters={{
-                content_format: "book",
-                items: [analyticsItems[0]],
-                placement: "featured_cover",
-              }}
-            />
-            <span className="cover-aura" aria-hidden="true" />
-            <div className="book-cover">
-              <img
-                src="/drakon-prince-book.png"
-                alt={featured.coverAlt ?? "Drakon Prince book cover"}
-              />
-            </div>
+            {featured ? (
+              <>
+                <AnalyticsView
+                  eventName="view_item"
+                  parameters={{
+                    content_format: "book",
+                    items: [analyticsItems[0]],
+                    placement: "featured_cover",
+                  }}
+                />
+                <span className="cover-aura" aria-hidden="true" />
+                <div className="book-cover">
+                  <img
+                    src={HERO_COVER_URL}
+                    alt={featured.coverAlt ?? `${featured.title} book cover`}
+                  />
+                </div>
+              </>
+            ) : (
+              <div
+                className="book-cover-placeholder"
+                role="img"
+                aria-label="Book details unavailable"
+              >
+                Book details unavailable
+              </div>
+            )}
           </div>
         </div>
       </section>
 
       <section className="path-section" id="heirs">
-        <AnalyticsView
-          eventName="view_item_list"
-          parameters={{
-            content_format: "book",
-            item_list_name: "Crownlocked Path",
-            items: analyticsItems,
-            placement: "series_path",
-          }}
-        />
+        {books.length > 0 && (
+          <AnalyticsView
+            eventName="view_item_list"
+            parameters={{
+              content_format: "book",
+              item_list_name: "Crownlocked Path",
+              items: analyticsItems,
+              placement: "series_path",
+            }}
+          />
+        )}
         <div className="section-heading shell">
           <p className="eyebrow">Choose an inheritance</p>
           <h2>The Crownlocked Path</h2>
@@ -279,49 +234,72 @@ export default async function Home() {
           </span>
         </div>
 
-        <div className="book-path shell">
-          {books.map((book) => {
-            const content = (
-              <>
-                <span className="book-number">{book.order}</span>
-                <span className="book-details">
-                  <strong>{book.title}</strong>
-                  <span className="book-status">{book.status}</span>
-                  <small className="sr-only">
-                    {book.protagonist}. {book.promise}
-                  </small>
-                </span>
-              </>
-            );
+        {books.length > 0 ? (
+          <div className="book-path shell">
+            {books.map((book) => {
+              const accessibleDescription = [
+                book.tagline,
+                book.cardDescription === book.tagline
+                  ? undefined
+                  : book.cardDescription,
+              ]
+                .filter(Boolean)
+                .join(". ");
+              const content = (
+                <>
+                  <span className="book-number">{book.order}</span>
+                  <span className="book-details">
+                    <strong>{book.title}</strong>
+                    <span className="book-status">{book.statusLabel}</span>
+                    {accessibleDescription && (
+                      <small className="sr-only">{accessibleDescription}</small>
+                    )}
+                  </span>
+                </>
+              );
 
-            return book.purchaseUrl ? (
-              <AnalyticsLink
-                className={`path-card path-card-${book.order}`}
-                eventName="retailer_link_click"
-                eventParameters={{
-                  content_format: "book",
-                  destination_domain: destinationDomain(book.purchaseUrl),
-                  item_id: book.id,
-                  item_name: book.title,
-                  link_text: book.title,
-                  list_name: "Crownlocked Path",
-                  placement: "series_path",
-                }}
-                href={book.purchaseUrl}
-                key={book.id}
-              >
-                {content}
-              </AnalyticsLink>
-            ) : (
-              <article
-                className={`path-card path-card-${book.order}`}
-                key={book.id}
-              >
-                {content}
-              </article>
-            );
-          })}
-        </div>
+              return book.storeUrl ? (
+                <AnalyticsLink
+                  className={`path-card path-card-${book.order}`}
+                  eventName="retailer_link_click"
+                  eventParameters={{
+                    content_format: "book",
+                    destination_domain: destinationDomain(book.storeUrl),
+                    item_id: book.id,
+                    item_name: book.title,
+                    link_text: book.storeLabel ?? book.title,
+                    list_name: "Crownlocked Path",
+                    placement: "series_path",
+                  }}
+                  href={book.storeUrl}
+                  key={book.id}
+                >
+                  {content}
+                </AnalyticsLink>
+              ) : (
+                <article
+                  className={`path-card path-card-${book.order}`}
+                  key={book.id}
+                >
+                  {content}
+                </article>
+              );
+            })}
+            <article
+              className="path-card path-card-4 path-card-placeholder"
+              aria-label="A fourth book in the series, not yet announced"
+            >
+              <span className="book-number">4</span>
+              <span className="book-details">
+                <span className="book-status">Unannounced</span>
+              </span>
+            </article>
+          </div>
+        ) : (
+          <p className="shell book-path-empty">
+            Book details are temporarily unavailable. Please check back soon.
+          </p>
+        )}
       </section>
 
       <section className="world-section" id="bjargfold">
@@ -350,6 +328,10 @@ export default async function Home() {
           <span>Found family</span>
           <span>Adventure &amp; romance</span>
         </div>
+
+        <p className="world-map-cta shell">
+          <Link href="/bjargfold">Explore the map of Bjargfold →</Link>
+        </p>
       </section>
 
       <SiteFooter />

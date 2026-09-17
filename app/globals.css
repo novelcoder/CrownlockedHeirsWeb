@@ -215,6 +215,20 @@ h1 {
   content: none;
 }
 .book-cover img { width: 100%; border: 0; }
+.book-cover-placeholder {
+  display: grid;
+  place-items: center;
+  width: min(490px, 94%);
+  aspect-ratio: 2 / 3;
+  border: 1px solid rgba(87, 200, 255, .36);
+  border-radius: 4px;
+  background: rgba(4, 20, 38, .78);
+  color: var(--ice);
+  font-family: var(--display);
+  letter-spacing: .04em;
+  text-align: center;
+  padding: 24px;
+}
 
 .embers { position: absolute; inset: 0; overflow: hidden; }
 .embers i {
@@ -252,6 +266,7 @@ h1 {
 .ornament::before, .ornament::after { content: ""; display: inline-block; width: 90px; height: 1px; margin: 0 13px 3px; background: linear-gradient(to right, transparent, rgba(244,165,28,.65)); }
 .ornament::after { transform: scaleX(-1); }
 .book-path { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+.book-path-empty { color: var(--ice); text-align: center; opacity: .8; }
 .path-card {
   min-width: 0;
   min-height: 168px;
@@ -339,6 +354,9 @@ h1 {
 .path-card-2 .book-number::after { background: linear-gradient(90deg, transparent, #a66bf1, transparent); box-shadow: 0 0 6px rgba(166,107,241,.6); }
 .path-card-3 .book-number::after { background: linear-gradient(90deg, transparent, #45d4ce, transparent); box-shadow: 0 0 6px rgba(69,212,206,.6); }
 .path-card-4 .book-number::after { background: linear-gradient(90deg, transparent, #9eb6c9, transparent); box-shadow: 0 0 6px rgba(158,182,201,.5); }
+.path-card-placeholder { opacity: .6; }
+.path-card-placeholder:hover { transform: none; }
+.path-card-placeholder .book-status { margin-top: 0; }
 .book-details { display: flex; min-width: 0; flex-direction: column; margin: 0; }
 .book-details strong {
   color: transparent;
@@ -363,13 +381,31 @@ h1 {
 }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
-.world-section { padding: 110px 0; background: #06101e; border-top: 1px solid rgba(216,247,255,.08); }
+.world-section {
+  padding: 110px 0;
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(3,9,20,.92) 0%, rgba(3,9,20,.88) 55%, rgba(3,9,20,.95) 100%),
+    url("https://sfo.cloud.appwrite.io/v1/storage/buckets/6aabf091000da4dc7980/files/6aabf5f3001c02e607d3/view?project=6a0b4638002a71c2b8ec") center / cover no-repeat;
+  border-top: 1px solid rgba(216,247,255,.08);
+}
 .world-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 100px; align-items: start; }
 .world-section h2 { max-width: 520px; line-height: 1.06; }
 .world-copy { color: #b7c6d1; font-family: var(--serif); font-size: 19px; line-height: 1.8; }
 .world-copy p { margin: 0 0 22px; }
 .promise-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 65px; }
 .promise-grid span { padding: 22px 12px; border-top: 1px solid rgba(244,165,28,.5); color: #cad8e2; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-align: center; text-transform: uppercase; }
+.world-map-cta { margin-top: 50px; text-align: center; }
+.world-map-cta a {
+  color: var(--gold);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.world-map-cta a:hover { color: #ffd47a; }
+.world-map-cta a::after { content: ""; position: absolute; inset: 0; }
 footer { padding: 42px 0; background: #020711; border-top: 1px solid rgba(244,165,28,.25); }
 .footer-inner { display: flex; justify-content: space-between; gap: 32px; color: #8295a5; font-size: 12px; letter-spacing: .06em; line-height: 1.7; }
 .footer-inner p { margin: 0; }
@@ -471,6 +507,15 @@ footer { padding: 42px 0; background: #020711; border-top: 1px solid rgba(244,16
 .legal-content section h2 { margin: 0 0 14px; color: var(--ice); font-family: var(--display); font-size: 24px; letter-spacing: .035em; }
 .legal-content section p { margin: 0 0 16px; color: #b7c6d1; font-family: var(--serif); font-size: 18px; line-height: 1.75; }
 .legal-content code { color: #a9ecff; font-size: .82em; }
+.map-frame {
+  margin: 40px 0 0;
+  border: 1px solid rgba(87, 200, 255, .36);
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(4, 20, 38, .78);
+  box-shadow: 0 28px 40px rgba(0,0,0,.55), 0 0 24px rgba(22,216,255,.22);
+}
+.map-frame img { display: block; width: 100%; height: auto; }
 .legal-content section > .footer-link {
   min-height: 44px;
   margin-top: 4px;
