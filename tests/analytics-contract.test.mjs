@@ -30,11 +30,12 @@ test("keeps Google Analytics behind an explicit, persistent consent choice", asy
 });
 
 test("keeps ad features denied and centralizes guarded measurement", async () => {
-  const [client, provider, events, page] = await Promise.all([
+  const [client, provider, events, page, bookPage] = await Promise.all([
     read("../lib/analytics/client.ts"),
     read("../components/analytics/AnalyticsProvider.tsx"),
     read("../components/analytics/AnalyticsEvents.tsx"),
     read("../app/page.tsx"),
+    read("../app/books/[slug]/page.tsx"),
   ]);
 
   assert.match(client, /ad_storage: "denied"/);
@@ -48,16 +49,20 @@ test("keeps ad features denied and centralizes guarded measurement", async () =>
   assert.doesNotMatch(provider, /gtag\(/);
   assert.doesNotMatch(events, /gtag\(/);
   assert.doesNotMatch(page, /gtag\(/);
+  assert.doesNotMatch(bookPage, /gtag\(/);
   assert.match(page, /eventName="view_item"/);
   assert.match(page, /eventName="view_item_list"/);
   assert.match(page, /eventName="series_cta_click"/);
-  assert.match(page, /eventName="retailer_link_click"/);
+  assert.match(page, /eventName="select_item"/);
+  assert.match(bookPage, /eventName="view_item"/);
+  assert.match(bookPage, /eventName="retailer_link_click"/);
 });
 
 test("does not contain a hardcoded GA4 measurement ID", async () => {
   const files = await Promise.all([
     read("../app/layout.tsx"),
     read("../app/page.tsx"),
+    read("../app/books/[slug]/page.tsx"),
     read("../components/analytics/AnalyticsProvider.tsx"),
     read("../components/analytics/AnalyticsEvents.tsx"),
     read("../lib/analytics/client.ts"),

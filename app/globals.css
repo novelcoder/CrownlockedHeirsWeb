@@ -194,6 +194,59 @@ h1 {
 .button-secondary { border: 1px solid rgba(244, 165, 28, .8); background: rgba(2, 8, 17, .72); }
 .button-secondary:hover { background: rgba(244, 165, 28, .08); }
 
+.book-detail {
+  display: grid;
+  grid-template-columns: .8fr 1.2fr;
+  gap: 60px;
+  align-items: start;
+  padding-block: 70px 60px;
+}
+.book-detail-copy h1 { text-align: left; }
+.book-detail-status {
+  display: inline-block;
+  margin: 4px 0 10px;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.book-detail-meta {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.book-detail .hero-lede { width: auto; margin: 0 0 30px; text-align: left; }
+.book-detail-blurb p { margin: 0 0 18px; color: #b7c6d1; font-family: var(--serif); font-size: 18px; line-height: 1.75; }
+.book-detail .hero-actions { justify-content: flex-start; margin-top: 8px; }
+.book-detail-note { margin: 8px 0 0; color: var(--muted); font-family: var(--serif); font-size: 16px; font-style: italic; }
+.book-detail-back { margin: 0 0 24px; }
+.book-detail-back a { color: var(--silver); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+.book-detail-back a:hover { color: var(--gold); }
+
+.button svg { width: 16px; height: 16px; margin-right: 8px; vertical-align: -3px; }
+
+.book-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 40px 0 70px;
+  border-top: 1px solid rgba(216,247,255,.12);
+}
+.book-nav-link { display: flex; flex-direction: column; gap: 4px; color: var(--silver); }
+.book-nav-next { text-align: right; align-items: flex-end; }
+.book-nav-label {
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.book-nav-title { font-family: var(--serif); font-size: 18px; color: var(--ice); }
+.book-nav-link:hover .book-nav-title { color: var(--gold); }
+
 .cover-stage { position: relative; display: grid; place-items: center; min-height: 630px; }
 .cover-aura {
   position: absolute;
@@ -548,6 +601,9 @@ footer { padding: 42px 0; background: #020711; border-top: 1px solid rgba(244,16
   .book-path { grid-template-columns: repeat(2, 1fr); }
   .path-card { min-height: 168px; }
   .path-card:nth-child(2)::before { display: none; }
+  .book-detail { grid-template-columns: 1fr; gap: 40px; padding-block: 50px 70px; }
+  .book-nav { flex-direction: column; gap: 20px; }
+  .book-nav-next { text-align: left; align-items: flex-start; }
 }
 
 @media (max-width: 720px) {

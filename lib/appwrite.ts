@@ -52,3 +52,19 @@ export async function listBookRowsBySeriesId(
   });
   return res.rows;
 }
+
+export async function getBookBySlugInSeries(
+  seriesId: string,
+  slug: string,
+): Promise<AppwriteRow | null> {
+  const res = await getTablesDB().listRows({
+    databaseId: requiredEnv("CMS_DATABASE_ID"),
+    tableId: BOOKS_TABLE_ID,
+    queries: [
+      Query.equal("series_id", seriesId),
+      Query.equal("slug", slug),
+      Query.limit(1),
+    ],
+  });
+  return res.rows[0] ?? null;
+}

@@ -3,9 +3,10 @@ import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("builds the Crownlocked Heirs homepage with its production assets", async () => {
-  const [page, layout, privacy, footer, appwriteLib, packageJson] =
+  const [page, bookPage, layout, privacy, footer, appwriteLib, booksLib, packageJson] =
     await Promise.all([
       readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+      readFile(new URL("../app/books/[slug]/page.tsx", import.meta.url), "utf8"),
       readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
       readFile(new URL("../app/privacy/page.tsx", import.meta.url), "utf8"),
       readFile(
@@ -13,19 +14,23 @@ test("builds the Crownlocked Heirs homepage with its production assets", async (
         "utf8",
       ),
       readFile(new URL("../lib/appwrite.ts", import.meta.url), "utf8"),
+      readFile(new URL("../lib/books.ts", import.meta.url), "utf8"),
       readFile(new URL("../package.json", import.meta.url), "utf8"),
     ]);
 
   assert.match(layout, /Crownlocked Heirs \| Jamie McFarlane/);
   assert.match(page, /crownlocked-heirs-wordmark-transparent\.png/);
-  assert.match(page, /crownlocked-heirs/);
-  assert.match(page, /getSeriesBySlug/);
-  assert.match(page, /listBookRowsBySeriesId/);
+  assert.match(page, /getSeriesBooks/);
   assert.match(page, /storage\/buckets\/.*\/files\/.*\/view/);
   assert.doesNotMatch(page, /Drakon Prince/);
   assert.doesNotMatch(page, /The Impossible Fellowship/);
   assert.doesNotMatch(page, /The Final Heir/);
   assert.doesNotMatch(page, /fallbackBooks/);
+  assert.match(booksLib, /crownlocked-heirs/);
+  assert.match(booksLib, /getSeriesBySlug/);
+  assert.match(booksLib, /listBookRowsBySeriesId/);
+  assert.match(bookPage, /getBookBySlug/);
+  assert.match(bookPage, /generateStaticParams/);
   assert.match(privacy, /Privacy &amp; Cookies/);
   assert.doesNotMatch(privacy, /Drakon Prince/);
   assert.match(footer, /CookieSettingsButton/);
